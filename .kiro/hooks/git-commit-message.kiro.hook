@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Git提交",
+  "description": "手动触发的钩子，用于将当前修改提交到Git，使用中文提交信息",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "查看当前的git修改，使用git status和git diff命令。创建一个有意义的中文提交信息来描述这些修改。然后执行：git add -A && git commit -m \"[你的中文提交信息]\"。提交信息应该清晰、简洁，遵循良好的提交信息规范，完全使用中文书写。"
+  }
+}

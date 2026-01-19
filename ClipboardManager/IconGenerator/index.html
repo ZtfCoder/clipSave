@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图标生成器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 20px;
+            color: #fff;
+        }
+        h1 { font-size: 16px; font-weight: 400; color: #666; margin-bottom: 50px; }
+        .preview-area {
+            display: flex;
+            gap: 60px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+        .preview-item { text-align: center; }
+        .preview-item span { display: block; margin-top: 15px; font-size: 12px; color: #555; }
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 30px 60px rgba(0,0,0,0.4));
+        }
+        .controls {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .controls h2 { font-size: 13px; font-weight: 400; color: #888; margin-bottom: 20px; text-align: center; }
+        .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(102,126,234,0.4); }
+        button.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        button.green:hover { box-shadow: 0 10px 30px rgba(56,239,125,0.3); }
+        #status { text-align: center; margin-top: 20px; font-size: 13px; color: #38ef7d; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Clipboard Manager Icon</h1>
+    
+    <div class="preview-area">
+        <div class="preview-item">
+            <div class="icon-container" id="icon-512"></div>
+            <span>512 × 512</span>
+        </div>
+        <div class="preview-item">
+            <div class="icon-container" id="icon-256"></div>
+            <span>256 × 256</span>
+        </div>
+        <div class="preview-item">
+            <div class="icon-container" id="icon-128"></div>
+            <span>128 × 128</span>
+        </div>
+        <div class="preview-item">
+            <div class="icon-container" id="icon-64"></div>
+            <span>64 × 64</span>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <h2>导出 PNG</h2>
+        <div class="btn-row">
+            <button onclick="exportPNG(512)">512px</button>
+            <button onclick="exportPNG(256)">256px</button>
+            <button onclick="exportPNG(128)">128px</button>
+            <button onclick="exportPNG(64)">64px</button>
+            <button class="green" onclick="exportAll()">全部导出</button>
+        </div>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function createIcon(size) {
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", size);
+            svg.setAttribute("height", size);
+            svg.setAttribute("viewBox", "0 0 512 512");
+            
+            svg.innerHTML = `
+                <defs>
+                    <!-- 主背景渐变 -->
+                    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6366f1"/>
+                        <stop offset="50%" style="stop-color:#8b5cf6"/>
+                        <stop offset="100%" style="stop-color:#a855f7"/>
+                    </linearGradient>
+                    
+                    <!-- 纸张渐变 -->
+                    <linearGradient id="paperGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffffff"/>
+                        <stop offset="100%" style="stop-color:#f1f5f9"/>
+                    </linearGradient>
+                    
+                    <!-- 纸张阴影 -->
+                    <linearGradient id="paperShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#e2e8f0"/>
+                        <stop offset="100%" style="stop-color:#cbd5e1"/>
+                    </linearGradient>
+                    
+                    <!-- 夹子金属渐变 -->
+                    <linearGradient id="clipGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#94a3b8"/>
+                        <stop offset="30%" style="stop-color:#64748b"/>
+                        <stop offset="70%" style="stop-color:#475569"/>
+                        <stop offset="100%" style="stop-color:#334155"/>
+                    </linearGradient>
+                    
+                    <!-- 夹子高光 -->
+                    <linearGradient id="clipHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f8fafc"/>
+                        <stop offset="100%" style="stop-color:#e2e8f0"/>
+                    </linearGradient>
+                    
+                    <!-- 顶部高光 -->
+                    <linearGradient id="topShine" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:rgba(255,255,255,0.5)"/>
+                        <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+                    </linearGradient>
+                    
+                    <!-- 文字行渐变 -->
+                    <linearGradient id="lineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#a78bfa"/>
+                        <stop offset="100%" style="stop-color:#c4b5fd"/>
+                    </linearGradient>
+                    <linearGradient id="lineGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#818cf8"/>
+                        <stop offset="100%" style="stop-color:#a5b4fc"/>
+                    </linearGradient>
+                    
+                    <!-- 徽章渐变 -->
+                    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#34d399"/>
+                        <stop offset="100%" style="stop-color:#10b981"/>
+                    </linearGradient>
+                    
+                    <!-- 阴影滤镜 -->
+                    <filter id="shadow1" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="8" stdDeviation="15" flood-color="rgba(0,0,0,0.25)"/>
+                    </filter>
+                    <filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.2)"/>
+                    </filter>
+                    <filter id="shadow3" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.15)"/>
+                    </filter>
+                    <filter id="badgeShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(16,185,129,0.5)"/>
+                    </filter>
+                    
+                    <!-- 圆角矩形裁剪 -->
+                    <clipPath id="iconClip">
+                        <rect x="0" y="0" width="512" height="512" rx="115" ry="115"/>
+                    </clipPath>
+                </defs>
+                
+                <!-- 背景 -->
+                <g clip-path="url(#iconClip)">
+                    <rect width="512" height="512" fill="url(#bgGrad)"/>
+                    
+                    <!-- 背景纹理光效 -->
+                    <ellipse cx="150" cy="100" rx="200" ry="150" fill="rgba(255,255,255,0.1)"/>
+                    <ellipse cx="400" cy="450" rx="180" ry="120" fill="rgba(139,92,246,0.3)"/>
+                </g>
+                
+                <!-- 后层纸张 (历史) -->
+                <g filter="url(#shadow1)">
+                    <rect x="135" y="115" width="200" height="260" rx="16" fill="url(#paperShadow)" transform="rotate(-6, 235, 245)"/>
+                </g>
+                
+                <!-- 中层纸张 -->
+                <g filter="url(#shadow2)">
+                    <rect x="145" y="105" width="200" height="260" rx="16" fill="url(#paperGrad)" transform="rotate(-3, 245, 235)"/>
+                </g>
+                
+                <!-- 主纸张 -->
+                <g filter="url(#shadow2)">
+                    <rect x="156" y="95" width="200" height="260" rx="16" fill="url(#paperGrad)"/>
+                    <!-- 纸张内边框高光 -->
+                    <rect x="157" y="96" width="198" height="258" rx="15" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1"/>
+                </g>
+                
+                <!-- 金属夹子 -->
+                <g filter="url(#shadow3)">
+                    <!-- 夹子主体 -->
+                    <rect x="206" y="75" width="100" height="45" rx="8" fill="url(#clipGrad)"/>
+                    <!-- 夹子顶部高光 -->
+                    <rect x="208" y="77" width="96" height="20" rx="6" fill="rgba(255,255,255,0.2)"/>
+                    <!-- 夹子内部凹槽 -->
+                    <rect x="231" y="95" width="50" height="18" rx="4" fill="url(#clipHighlight)"/>
+                    <!-- 凹槽内阴影 -->
+                    <rect x="233" y="97" width="46" height="14" rx="3" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+                </g>
+                
+                <!-- 文字行 -->
+                <g>
+                    <rect x="180" y="160" width="150" height="14" rx="7" fill="url(#lineGrad1)"/>
+                    <rect x="180" y="190" width="120" height="14" rx="7" fill="url(#lineGrad2)"/>
+                    <rect x="180" y="220" width="140" height="14" rx="7" fill="url(#lineGrad1)" opacity="0.7"/>
+                    <rect x="180" y="250" width="100" height="14" rx="7" fill="url(#lineGrad2)" opacity="0.5"/>
+                </g>
+                
+                <!-- 复制图标徽章 -->
+                <g filter="url(#badgeShadow)">
+                    <circle cx="355" cy="355" r="55" fill="url(#badgeGrad)"/>
+                    <circle cx="355" cy="355" r="53" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                    <!-- 复制图标 -->
+                    <g transform="translate(355, 355)">
+                        <!-- 后面的文档 -->
+                        <rect x="-18" y="-22" width="28" height="34" rx="4" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                        <!-- 前面的文档 -->
+                        <rect x="-10" y="-14" width="28" height="34" rx="4" fill="white"/>
+                    </g>
+                </g>
+                
+                <!-- 顶部玻璃高光 -->
+                <g clip-path="url(#iconClip)">
+                    <ellipse cx="256" cy="-50" rx="300" ry="200" fill="url(#topShine)"/>
+                </g>
+            `;
+            
+            return svg;
+        }
+        
+        // 渲染所有尺寸
+        [512, 256, 128, 64].forEach(size => {
+            document.getElementById(`icon-${size}`).appendChild(createIcon(size));
+        });
+        
+        // 导出 PNG
+        async function exportPNG(size) {
+            const status = document.getElementById('status');
+            status.textContent = `导出 ${size}px...`;
+            
+            const svg = createIcon(size);
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, size, size);
+                
+                canvas.toBlob(blob => {
+                    const link = document.createElement('a');
+                    link.download = `icon_${size}x${size}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    status.textContent = `✓ ${size}px 已保存`;
+                }, 'image/png');
+            };
+            img.src = url;
+        }
+        
+        async function exportAll() {
+            for (const size of [512, 256, 128, 64, 32, 16]) {
+                await exportPNG(size);
+                await new Promise(r => setTimeout(r, 400));
+            }
+            document.getElementById('status').textContent = '✓ 全部导出完成';
+        }
+    </script>
+</body>
+</html>

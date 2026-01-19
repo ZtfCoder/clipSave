@@ -1,0 +1,15 @@
+{
+  "name": "Create GitHub Release",
+  "version": "1.0.0",
+  "description": "当用户触发时，自动创建 git tag、生成 release notes 并发布到 GitHub，同时上传 DMG 文件",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "执行以下发布流程：\n\n1. 读取 easyView/Info.plist 获取当前版本号（CFBundleShortVersionString）\n2. 检查是否已存在该版本的 tag，如果存在则询问用户是否覆盖\n3. 检查 build 目录或根目录是否存在对应版本的 DMG 文件（easyView-{version}.dmg）\n4. 如果 DMG 不存在，询问用户是否先构建 DMG（运行 ./build_dmg.sh）\n5. 生成 release notes，包含：\n   - 从最近的 git commits 提取更新内容\n   - 格式化为中文 markdown\n   - 包含功能特性、修复问题等分类\n6. 创建 git tag（格式：v{version}）\n7. 推送 tag 到远程：git push origin v{version}\n8. 使用 gh CLI 创建 GitHub release：\n   gh release create v{version} --title \"EasyView {version}\" --notes \"{release_notes}\" {dmg_file}\n9. 显示发布成功信息和 release URL\n\n如果任何步骤失败，提供清晰的错误信息和解决建议。"
+  },
+  "enabled": true,
+  "workspaceFolderName": "easyView",
+  "shortName": "create-release"
+}
